@@ -3,23 +3,23 @@
 # TODO
 # + Averege area
 # + Averege price
-# Most popular words in description
-# Pets allowed/no
+# + Most popular words in description
+# + Pets allowed/no
 # How long it stayed alive (until ads got disabled)
 # Heatmap of prices/ locations to prove that city center is not more expensive
 # Averege rooms ?? area??
 # Area with most amount of immobilien offers
-# Destribution of new flats per week
-#Destribution of new flat ads per day
+# + Destribution of new flat ADS per week
+# + Destribution of new flat ads per day
 
 
 
-from data_cleaning import int_float_price, clean_price, clean_online_since, conv_date_obj, int_float, get_weekday, get_online_hour
-from plotting import plot_bar_chart, plot_histogram
+from data_cleaning import int_float_price, clean_price, clean_online_since, conv_date_obj, int_float, get_weekday, get_online_hour, clean_description
+from plotting import plot_bar_chart, plot_histogram, plot_cloud, plot_pie_chart
 from db_handler import ini_tiny_db, dynamodb_connect, local_db_insert_data, scan_db
 from tinydb import TinyDB, Query #TODO: redo later
 from collections import Counter
-
+from wordcloud import WordCloud, STOPWORDS
 
 UPDATEDBFROMAWS = False
 
@@ -81,6 +81,7 @@ for weekday_object in weekday_objects:
 weekday_title = 'Weekly new flat posting distribution'
 weekday_ylabel = 'times'
 
+# PRINT
 #chart_week_dist = plot_bar_chart(weekday_objects, weekday_data,weekday_title, weekday_ylabel)
 
 # Distribution of postings per day
@@ -96,8 +97,49 @@ for hour_object in hour_objects:
 
 
 hour_title = 'Day posting distribution'
-chart_hour_dist = plot_histogram(online_hour_list,hour_title,24)
-#hour_objets = sorted(list(sorted_hours.keys()))
+# PRINT
+#chart_hour_dist = plot_histogram(online_hour_list,hour_title,24)
+descriptions_list = []
+for description_key in data:
 
-print(hour_objects)
-print(hour_data)
+    descriptions_list.append(description_key['description']) 
+
+clean_description_text = clean_description(descriptions_list)  
+
+# Generate word cloud
+my_stopwords_list = ['mit','zi', 'im', 'voll', 'whg', 'und', 'von', 'der','die', 'nach', 'ab','uhr','um','zum', 'für','whg']
+additional_stopwords = ['münchen','zimmer', 'wohnung']
+my_stopwords_list.extend(additional_stopwords) # add some extra stop words
+my_stopwords = set(STOPWORDS)
+my_stopwords.update(my_stopwords_list)
+
+
+# PRINT
+#wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, background_color='salmon', colormap='Pastel1', collocations=False, stopwords = my_stopwords).generate(clean_description_text)
+#cloud = plot_cloud(wordcloud)
+
+
+pets_data_list = []
+
+for pet_info in data:
+    try:
+        pets_data_list.append(pet_info['petsAllowed'])
+    except TypeError:
+        pass
+    except KeyError:
+        pass
+
+pets_data_list = ['Not Specified' if x=='' else x for x in pets_data_list]
+
+pets_labels = ['Nein', 'Ja','Not Specified', 'Nach Vereinbarung']
+sorted_pets_data = Counter(pets_data_list)
+
+
+pet_data_dist = []
+
+for pet_data in pets_labels:
+
+    pet_data_dist.append(sorted_pets_data[pet_data])
+
+# PRINT
+chart_pie = plot_pie_chart(pet_data_dist, pets_labels)

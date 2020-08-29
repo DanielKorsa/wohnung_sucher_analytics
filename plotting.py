@@ -33,3 +33,28 @@ def plot_histogram(data, title, n_bins = 12):
     plt.title(title)
 
     return plt.show()
+
+
+def plot_cloud(wordcloud):
+    # Set figure size
+    plt.figure(figsize=(10, 10))
+    # Display image
+    plt.imshow(wordcloud) 
+    # No axis details
+    plt.axis("off")
+    return plt.show()
+
+
+
+def plot_pie_chart(pets_data, objects):
+
+    
+    colors = ['lightcoral', 'yellowgreen', 'lightskyblue', 'gold']
+    explode = (0, 0.1, 0, 0)  # explode 1st slice
+    plt.pie(x = pets_data, explode = explode, shadow = True, colors = colors, labels = objects, startangle =90, autopct='%.1f%%')
+    plt.title('Pets allowed Pie Chart')
+    plt.axis('equal')
+
+    return plt.show()
+
+
