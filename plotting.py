@@ -28,8 +28,8 @@ def plot_histogram(data, title, n_bins = 12):
     plt.xticks(ticks)
     plt.xticks(fontsize=10)
     plt.yticks(fontsize=15)
-    plt.ylabel('Avr Frequency',fontsize=15)
-    plt.xlabel('Value',fontsize=15)
+    plt.ylabel('Averege number of ad posts',fontsize=15)
+    plt.xlabel('Time',fontsize=15)
     plt.title(title)
 
     return plt.show()

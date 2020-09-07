@@ -7,12 +7,13 @@
 # + Pets allowed/no
 # How long it stayed alive (until ads got disabled)
 # Heatmap of prices/ locations to prove that city center is not more expensive
+# Hearmap of offers - which district is the hootest and has more offers?
 # Averege rooms ?? area??
 # Area with most amount of immobilien offers
 # + Destribution of new flat ADS per week
 # + Destribution of new flat ads per day
-
-
+# % of flats listed with full address
+# 
 
 from data_cleaning import int_float_price, clean_price, clean_online_since, conv_date_obj, int_float, get_weekday, get_online_hour, clean_description
 from plotting import plot_bar_chart, plot_histogram, plot_cloud, plot_pie_chart
@@ -79,7 +80,7 @@ for weekday_object in weekday_objects:
     weekday_data.append(sorted_weekdays[weekday_object])
 
 weekday_title = 'Weekly new flat posting distribution'
-weekday_ylabel = 'times'
+weekday_ylabel = 'Averege number of ad posts'
 
 # PRINT
 #chart_week_dist = plot_bar_chart(weekday_objects, weekday_data,weekday_title, weekday_ylabel)
@@ -107,7 +108,7 @@ for description_key in data:
 clean_description_text = clean_description(descriptions_list)  
 
 # Generate word cloud
-my_stopwords_list = ['mit','zi', 'im', 'voll', 'whg', 'und', 'von', 'der','die', 'nach', 'ab','uhr','um','zum', 'für','whg']
+my_stopwords_list = ['mit','zi', 'im', 'voll', 'whg', 'und', 'von', 'der','die', 'nach', 'ab','uhr','um','zum', 'für','whg', 'eg', 'iw']
 additional_stopwords = ['münchen','zimmer', 'wohnung']
 my_stopwords_list.extend(additional_stopwords) # add some extra stop words
 my_stopwords = set(STOPWORDS)
@@ -115,8 +116,8 @@ my_stopwords.update(my_stopwords_list)
 
 
 # PRINT
-#wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, background_color='salmon', colormap='Pastel1', collocations=False, stopwords = my_stopwords).generate(clean_description_text)
-#cloud = plot_cloud(wordcloud)
+wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, background_color='salmon', colormap='Pastel1', collocations=False, stopwords = my_stopwords).generate(clean_description_text)
+cloud = plot_cloud(wordcloud)
 
 
 pets_data_list = []
@@ -142,4 +143,24 @@ for pet_data in pets_labels:
     pet_data_dist.append(sorted_pets_data[pet_data])
 
 # PRINT
-chart_pie = plot_pie_chart(pet_data_dist, pets_labels)
+#chart_pie = plot_pie_chart(pet_data_dist, pets_labels)
+
+def clean_address_data(address_str):
+    
+    address_str = address_str.lower()
+    if 'anbieter' in address_str:
+        return address_str.split(',')[0]
+    else:
+        return address_str
+
+address_list = []
+
+for address in data:
+
+    clean_address = clean_address_data(address['address'])
+    
+    address_list.append(clean_address)
+
+with open('clean_addresses.txt', 'w') as f:
+    for item in address_list:
+        f.write("%s\n" % item)

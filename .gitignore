@@ -4,6 +4,13 @@ test.py
 wohnung_sucher_analytics/
 .vscode/
 results/
+config.ini
+addresses.txt
+clean_addresses.txt
+geodata_test.json
+googlemapsapiresponse.py
+test.json
+wohnung_sucher_analytics_db.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
