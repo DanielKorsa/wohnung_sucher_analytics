@@ -21,8 +21,11 @@ from db_handler import ini_tiny_db, dynamodb_connect, local_db_insert_data, scan
 from tinydb import TinyDB, Query #TODO: redo later
 from collections import Counter
 from wordcloud import WordCloud, STOPWORDS
+import pprint
+import collections
 
 UPDATEDBFROMAWS = False
+CLEANFAKEADS = True
 
 local_db = ini_tiny_db('wohnung_sucher_analytics_db.json')
 
@@ -35,6 +38,12 @@ if UPDATEDBFROMAWS:
 
 flat = Query()
 data = local_db.search(flat['source'] == 'immoscout24')
+
+print('There were {} 2 room apartment offers from 23.08 - 23.09'.format(len(data)))
+#! Clean duplicates based on address
+#! Clean data from fake ads
+if CLEANFAKEADS:
+    
 
 
 # Get averege flat area
@@ -54,7 +63,20 @@ for price in data:
 avrg_price = sum(prices_data) / len(prices_data)
 print('Averege price of a 2 room apartment in Munich is {} euro'.format("%.2f" % avrg_price))
 
+# Print price destribution plot
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+#df=pd.DataFrame({'prices' : prices_data})
 
+pd.DataFrame(prices_data).plot(kind='density')
+#plt.show() #! PLOT price distribution
+
+
+pd.DataFrame(areas_data).plot(kind='density')
+#plt.show() #! PLOT price distribution
+
+# Area to price correlation
 
 
 # Distribution of new flats per week
@@ -82,7 +104,7 @@ for weekday_object in weekday_objects:
 weekday_title = 'Weekly new flat posting distribution'
 weekday_ylabel = 'Averege number of ad posts'
 
-# PRINT
+# !PRINT
 #chart_week_dist = plot_bar_chart(weekday_objects, weekday_data,weekday_title, weekday_ylabel)
 
 # Distribution of postings per day
@@ -98,8 +120,9 @@ for hour_object in hour_objects:
 
 
 hour_title = 'Day posting distribution'
-# PRINT
+# !PRINT
 #chart_hour_dist = plot_histogram(online_hour_list,hour_title,24)
+
 descriptions_list = []
 for description_key in data:
 
@@ -115,9 +138,9 @@ my_stopwords = set(STOPWORDS)
 my_stopwords.update(my_stopwords_list)
 
 
-# PRINT
-wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, background_color='salmon', colormap='Pastel1', collocations=False, stopwords = my_stopwords).generate(clean_description_text)
-cloud = plot_cloud(wordcloud)
+# !PRINT
+#wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, background_color='salmon', colormap='Pastel1', collocations=False, stopwords = my_stopwords).generate(clean_description_text)
+#cloud = plot_cloud(wordcloud)
 
 
 pets_data_list = []
@@ -142,8 +165,13 @@ for pet_data in pets_labels:
 
     pet_data_dist.append(sorted_pets_data[pet_data])
 
-# PRINT
+# !PRINT
 #chart_pie = plot_pie_chart(pet_data_dist, pets_labels)
+
+def find_duplicates_list(any_list):
+    
+    return [item for item, count in collections.Counter(any_list).items() if count > 1]
+    
 
 def clean_address_data(address_str):
     
@@ -154,13 +182,26 @@ def clean_address_data(address_str):
         return address_str
 
 address_list = []
+address_prices = []
 
 for address in data:
 
     clean_address = clean_address_data(address['address'])
-    
+    address_prices.append(clean_price(address['price'].split(' ')[0]))
     address_list.append(clean_address)
 
+
+duplicated_flats = find_duplicates_list(address_list) #! add to cleaning but it also removes duplicates of postal codes
+#pprint.pprint(duplicated_flats)
+#print(len(duplicated_flats))
+
+
+# Save to txt file
 with open('clean_addresses.txt', 'w') as f:
     for item in address_list:
+        f.write("%s\n" % item)
+        
+# Save to txt file
+with open('clean_prices.txt', 'w') as f:
+    for item in address_prices:
         f.write("%s\n" % item)
