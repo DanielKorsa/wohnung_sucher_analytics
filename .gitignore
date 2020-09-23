@@ -2,6 +2,7 @@
 
 test.py
 wohnung_sucher_analytics/
+venv_ws_analytics
 .vscode/
 results/
 config.ini

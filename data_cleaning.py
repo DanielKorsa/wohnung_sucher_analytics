@@ -2,6 +2,7 @@
 from datetime import date, datetime
 import calendar
 import re
+import random
 
 def clean_description(descr_list):
     '''
@@ -15,6 +16,28 @@ def clean_description(descr_list):
     clean_text = ' '.join(clean_words_list)
     
     return clean_text
+
+def clean_online_since_date(date_time_str):
+    '''
+    Str from db online_since = '2020-08-27T09:30:18'
+    '''
+    if date_time_str == 'no data':
+        online_date = '2020-08-' + str(random.randint(16,21)) #TODO: make random date from 16-23 Sep
+    else:
+        online_date = date_time_str.split('T')[0]
+
+    return online_date
+
+def clean_online_since_time(date_time_str):
+    '''
+    Str from db online_since = '2020-08-27T09:30:18'
+    '''
+    if date_time_str == 'no data':
+        online_time = str(random.randint(0,24)) + ':30:18' #TODO: make random date from 00-24 Sep
+    else:
+        online_time = date_time_str.split('T')[0]
+
+    return online_time
 
 def clean_online_since(date_time_str):
     '''
@@ -67,6 +90,8 @@ def clean_price(price):
     '''
     Prices on web site have different separator, this func is cleaning it
     '''
+    price = price.split(' ')[0]
+
     if '.' in price:
 
         clean_price = price.replace('.', '')
