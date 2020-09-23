@@ -30,16 +30,15 @@ else:
     
 # Cleaning data, saving it as another CSV
 #! Clean area, onlineSince, petsAllowed, Price
-#! DELETE: email phone
-
-
-
+#! Try apply function of pandas
 if CLEAN_DATA:
     
     columns_to_drop = ['email', 'phone', 'source'] # Remove columns which are not used
     dataset.drop(columns_to_drop, inplace=True, axis=1)
     
 
+
+#employees['Age'].hist()
 
 #print(list(dataset)) # Get headers
 print(dataset.head(10)) # Get first N dataframe values
