@@ -6,10 +6,12 @@ import matplotlib.pyplot as plt
 #
 from db_handler import dynamodb_connect, scan_db
 from data_cleaning import clean_price, clean_online_since_date, clean_online_since_time
+from plotting_data_prep import weekly_freq_prep
+from plotting import plot_bar_chart
 
 UPDATE_DB = False
-CLEAN_DATA = True
-PRINT = False
+CLEAN_DATA = False
+PRINT = True
 
 
 if UPDATE_DB:
@@ -23,9 +25,9 @@ if UPDATE_DB:
 
 else:
     '''
-    Get local copy of dataset
+    Get local CLEAN copy of dataset
     '''
-    dataset = pd.read_csv('PANDAS_CSV.csv', sep='\t', encoding='utf-8')
+    dataset = pd.read_csv('PANDAS_CLEAN_DATA.csv', sep='\t', encoding='utf-8')
 
 
 #! CLEANING DATA
@@ -49,11 +51,23 @@ if CLEAN_DATA:
 #! PRINTING
 # area_hist = dataset['Area'].hist()
 if PRINT:
-    print(dataset['price'].dtypes) # print data type of a column
-    dataset['price'].plot(kind='density')
-    plt.show()
+    print('PRINTING') # print data type of a column
+    # dataset['price'].plot(kind='density')
+    # plt.show()
+    weekday_title = 'Weekly new flat posting distribution'
+    weekday_ylabel = 'Averege number of ad posts'
+    weekday_data, weekday_objects = weekly_freq_prep(dataset['onlineSinceDate'])
+    chart_week_dist = plot_bar_chart(weekday_objects, weekday_data, title=weekday_title, ylabel=weekday_ylabel)
+
+    #weekdays_freq.plot.bar(x="Weekday", y="N of ads", rot=70, title="Weekly ads distribution")
+    #plt.show()
+    #print(type(weekdays_freq))
+    #weekly_dist_hist = dataset['weekdays'].plot.bar(x="Weekday", y="N of ads", rot=70, title="Weekly ads distribution")
+    #plt.show()
+
 
 #print(list(dataset)) # Get headers
 #dataset.to_csv('PANDAS_CLEAN_DATA.csv', sep='\t', encoding='utf-8', index=False) #! write clean data to csv
-print(dataset.head(3)) # Get first N dataframe values
-print(dataset.info()) # Get dataset info
+# print(dataset.head(3)) # Get first N dataframe values
+# print(dataset.info()) # Get dataset info
+# print(dataset.dtypes)

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 
-def plot_bar_chart(objects, data, title, ylabel):
+def plot_bar_chart(objects, data, title='default', ylabel='default'):
 
     
     y_pos = np.arange(len(objects))

@@ -14,7 +14,7 @@ def clean_description(descr_list):
     words_list = pure_text.split(' ')
     clean_words_list = [word.lower() for word in words_list]
     clean_text = ' '.join(clean_words_list)
-    
+
     return clean_text
 
 def clean_online_since_date(date_time_str):
@@ -35,7 +35,7 @@ def clean_online_since_time(date_time_str):
     if date_time_str == 'no data':
         online_time = str(random.randint(0,24)) + ':30:18' #TODO: make random date from 00-24 Sep
     else:
-        online_time = date_time_str.split('T')[0]
+        online_time = date_time_str.split('T')[1]
 
     return online_time
 
@@ -64,6 +64,16 @@ def get_online_hour(time_str):
 def get_weekday(date_obj):
     '''
     '''
+    weekday = calendar.day_name[date_obj.weekday()]
+
+    return weekday
+
+def conv_datestr_to_weekday(date_str):
+    '''
+    Converts "2020-08-17" str into weekday "Monday" str
+    '''
+    format_str = '%Y-%m-%d'
+    date_obj = datetime.strptime(date_str, format_str)
     weekday = calendar.day_name[date_obj.weekday()]
 
     return weekday
