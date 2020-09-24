@@ -13,7 +13,7 @@
 # + Destribution of new flat ADS per week
 # + Destribution of new flat ads per day
 # % of flats listed with full address
-# 
+
 
 from data_cleaning import int_float_price, clean_price, clean_online_since, conv_date_obj, int_float, get_weekday, get_online_hour, clean_description
 from plotting import plot_bar_chart, plot_histogram, plot_cloud, plot_pie_chart

@@ -1,4 +1,4 @@
-
+#
 import pprint
 import pandas as pd
 import numpy as np
@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 #
 from db_handler import dynamodb_connect, scan_db
 from data_cleaning import clean_price, clean_online_since_date, clean_online_since_time
-from plotting_data_prep import weekly_freq_prep
-from plotting import plot_bar_chart
+from plotting_data_prep import weekly_freq_prep, daily_freq_prep, pet_info_prep
+from plotting import plot_bar_chart, plot_histogram, plot_pie_chart
 
 UPDATE_DB = False
 CLEAN_DATA = False
 PRINT = True
-
+TO_PRINT = ['']
 
 if UPDATE_DB:
     '''
@@ -40,7 +40,7 @@ if CLEAN_DATA:
 
     dataset['Area'] = dataset['Area'].apply(lambda area: float(area.split(' ')[0].replace(',','.'))) # clean Area data
     dataset['price'] = dataset['price'].apply(clean_price) # Clean price from . ,
-    dataset['petsAllowed'] = dataset['petsAllowed'].fillna(value='Nach Vereinbarung') # Fill PetsAllowed NaN with Nach Vereinbarung
+    dataset['petsAllowed'] = dataset['petsAllowed'].fillna(value='Not Specified') # Fill PetsAllowed NaN with Nach Vereinbarung
     dataset['onlineSinceDate'] = dataset['onlineSince'].apply(clean_online_since_date)
     dataset['onlineSinceTime'] = dataset['onlineSince'].apply(clean_online_since_time)
 
@@ -51,13 +51,26 @@ if CLEAN_DATA:
 #! PRINTING
 # area_hist = dataset['Area'].hist()
 if PRINT:
-    print('PRINTING') # print data type of a column
+    print('PRINTING') 
     # dataset['price'].plot(kind='density')
     # plt.show()
-    weekday_title = 'Weekly new flat posting distribution'
-    weekday_ylabel = 'Averege number of ad posts'
-    weekday_data, weekday_objects = weekly_freq_prep(dataset['onlineSinceDate'])
-    chart_week_dist = plot_bar_chart(weekday_objects, weekday_data, title=weekday_title, ylabel=weekday_ylabel)
+    if 'weekly_dist' in TO_PRINT:
+        weekday_title = 'Weekly new flat posting distribution'
+        weekday_ylabel = 'Averege number of ad posts'
+        weekday_data, weekday_objects = weekly_freq_prep(dataset['onlineSinceDate'])
+        chart_week_dist = plot_bar_chart(weekday_objects, weekday_data, title=weekday_title, ylabel=weekday_ylabel)
+
+    if 'daily_dist' in TO_PRINT:
+
+        hour_title = 'Day posting distribution'
+        hourly_freq = daily_freq_prep(dataset['onlineSinceTime'])
+        chart_hour_dist = plot_histogram(data=hourly_freq,title=hour_title, n_bins=24)
+
+    if 'pet_data' in TO_PRINT:
+
+        pet_data_dist, pets_labels = pet_info_prep(dataset['petsAllowed'])
+        print(pets_labels)
+        chart_pie = plot_pie_chart(pet_data_dist, pets_labels)
 
     #weekdays_freq.plot.bar(x="Weekday", y="N of ads", rot=70, title="Weekly ads distribution")
     #plt.show()
