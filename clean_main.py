@@ -99,9 +99,13 @@ if PRINT:
 
         tosort_area_price = dataset[['Area','price']].copy()
         tosort_area_price.sort_values(by=['Area'], inplace=True)
-        tosort_area_price.plot(x ='Area', y='price', kind = 'line')
-        plt.show()
+        #tosort_area_price.plot(x ='Area', y='price', kind = 'line')
 
+
+        #plt.show()
+        #ax = tosort_area_price['price'].plot()
+        #tosort_area_price['price'].plot(ax=ax)
+        plt.show()
         print(tosort_area_price.head(10))
         #print(tosort_area_price.info())
 
