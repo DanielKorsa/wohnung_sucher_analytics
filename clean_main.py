@@ -5,14 +5,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 #
 from db_handler import dynamodb_connect, scan_db
-from data_cleaning import clean_price, clean_online_since_date, clean_online_since_time
+from data_cleaning import clean_price, clean_online_since_date, clean_online_since_time, clean_description
 from plotting_data_prep import weekly_freq_prep, daily_freq_prep, pet_info_prep
-from plotting import plot_bar_chart, plot_histogram, plot_pie_chart
+from plotting import plot_bar_chart, plot_histogram, plot_pie_chart, plot_wordcloud
 
 UPDATE_DB = False
 CLEAN_DATA = False
 PRINT = True
-TO_PRINT = ['']
+TO_PRINT = ['avr_price', 'avr_area', 'area_price']
 
 if UPDATE_DB:
     '''
@@ -52,8 +52,20 @@ if CLEAN_DATA:
 # area_hist = dataset['Area'].hist()
 if PRINT:
     print('PRINTING') 
-    # dataset['price'].plot(kind='density')
-    # plt.show()
+
+    if 'avr_area' in TO_PRINT:
+        avr_area = dataset['Area'].mean()
+        print('Averege area of a 2 room apartment in Munich is {} sq m'.format("%.2f" % avr_area))
+
+    if 'avr_price' in TO_PRINT:
+        avr_price = dataset['price'].mean()
+        print('Averege price of a 2 room apartment in Munich is {} euro'.format("%.2f" % avr_price))
+
+    if 'price_hist' in TO_PRINT:
+
+        dataset['price'].plot(kind='density')
+        plt.show()
+
     if 'weekly_dist' in TO_PRINT:
         weekday_title = 'Weekly new flat posting distribution'
         weekday_ylabel = 'Averege number of ad posts'
@@ -71,6 +83,30 @@ if PRINT:
         pet_data_dist, pets_labels = pet_info_prep(dataset['petsAllowed'])
         print(pets_labels)
         chart_pie = plot_pie_chart(pet_data_dist, pets_labels)
+
+    if 'wordcloud' in TO_PRINT:
+
+        clean_descriptions = clean_description(dataset['description'])
+
+        # Generate word cloud
+        my_stopwords_list = ['mit','zi', 'im', 'voll', 'whg', 'und', 'von', 'der','die', 'nach', 'ab','uhr','um','zum', 'für','whg', 'eg', 'iw']
+        additional_stopwords = ['münchen','zimmer', 'wohnung']
+        my_stopwords_list.extend(additional_stopwords) # add some extra stop words
+
+        cloud = plot_wordcloud(clean_descriptions, my_stopwords_list)
+
+    if 'area_price' in TO_PRINT:
+
+        tosort_area_price = dataset[['Area','price']].copy()
+        tosort_area_price.sort_values(by=['Area'], inplace=True)
+        tosort_area_price.plot(x ='Area', y='price', kind = 'line')
+        plt.show()
+
+        print(tosort_area_price.head(10))
+        #print(tosort_area_price.info())
+
+
+
 
     #weekdays_freq.plot.bar(x="Weekday", y="N of ads", rot=70, title="Weekly ads distribution")
     #plt.show()
