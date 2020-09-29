@@ -10,7 +10,7 @@ from wordcloud import WordCloud, STOPWORDS
 
 def plot_bar_chart(objects, data, title='default', ylabel='default'):
 
-    
+
     y_pos = np.arange(len(objects))
 
     plt.bar(y_pos, data, align='center', alpha=0.5)
@@ -55,7 +55,7 @@ def plot_wordcloud(cloud_words, extra_stopwords):
 
 def plot_pie_chart(pets_data, objects):
 
-    
+
     colors = ['lightcoral', 'yellowgreen', 'lightskyblue', 'gold']
     explode = (0, 0.1, 0, 0)  # explode 1st slice
     plt.pie(x = pets_data, explode = explode, shadow = True, colors = colors, labels = objects, startangle =90, autopct='%.1f%%')

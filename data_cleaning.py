@@ -105,7 +105,7 @@ def clean_price(price):
     if '.' in price:
 
         clean_price = price.replace('.', '')
-        
+
         if ',' in clean_price:
             result = (int(clean_price.split(',')[0]))
 
@@ -117,10 +117,16 @@ def clean_price(price):
 
     else:
         result = (int(price))
-                
+
 
     return result
 
 
+def clean_address_data(address_str):
 
+    address_str = address_str.lower()
+    if 'anbieter' in address_str:
+        return address_str.split(',')[0]
+    else:
+        return address_str
 

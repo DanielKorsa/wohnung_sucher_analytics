@@ -7,7 +7,7 @@ import json
 
 
 CONF_FILE = 'config.ini'
-config = configparser.ConfigParser()                                     
+config = configparser.ConfigParser()
 config.read(CONF_FILE)
 api_key = config.get('TOKENS','GMAPIKEY')
 gmaps = googlemaps.Client(key=api_key)
