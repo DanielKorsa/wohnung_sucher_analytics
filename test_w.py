@@ -2,8 +2,10 @@
 import pprint
 import pandas as pd
 import numpy as np
+import json
 import matplotlib.pyplot as plt
 from plotting import plot_bar_chart
+
 
 TO_PRINT = []
 
@@ -74,38 +76,33 @@ if 'district_freq' in TO_PRINT:
     plt.show()
     #pprint.pprint(area_freq)
 
-# langs = [11.63 , 11.53]
-# lats = [48.16, 48.17]
 
-import json
+def make_geojson_file(coords_list, file_name = 'geo.geojson'):
+    '''
+    coords example = [11.63 , 48.16], [11.53, 48.17]
+    '''
 
-coords = [11.63 , 48.16], [11.53, 48.17]
+    geo_header = {"type": "FeatureCollection", "features": []}
 
-geo_header = {
-    "type": "FeatureCollection",
-    "features": []
-}
+    geojson_list = []
 
+    for lang, lat in coords_list:
 
-
-
-geojson_list = []
-
-for lang, lat in coords:
-
-    single_geodata = {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [lang, lat]
+        single_geodata = {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+                "type": "Point",
+                "coordinates": [lang, lat]
+            }
         }
-    }
-    geojson_list.append(single_geodata)
+        geojson_list.append(single_geodata)
 
-geo_header['features'] = geojson_list
-pprint.pprint(geo_header)
+    geo_header['features'] = geojson_list
+    #pprint.pprint(geo_header)
 
-#pprint.pprint(single_geodata)
-with open('mygeo.geojson', 'w') as f:
-    json.dump(geo_header, f)
+    with open('mygeo.geojson', 'w') as f:
+        json.dump(geo_header, f)
+
+
+lats = dataset['lat']
