@@ -3,13 +3,14 @@
 import matplotlib.pyplot as plt; plt.rcdefaults()
 import numpy as np
 import matplotlib.pyplot as plt
+from wordcloud import WordCloud, STOPWORDS
 
 
 
 
-def plot_bar_chart(objects, data, title, ylabel):
+def plot_bar_chart(objects, data, title='default', ylabel='default'):
 
-    
+
     y_pos = np.arange(len(objects))
 
     plt.bar(y_pos, data, align='center', alpha=0.5)
@@ -35,20 +36,26 @@ def plot_histogram(data, title, n_bins = 12):
     return plt.show()
 
 
-def plot_cloud(wordcloud):
+def plot_wordcloud(cloud_words, extra_stopwords):
+
+    new_stopwords = set(STOPWORDS)
+    new_stopwords.update(extra_stopwords)
+
+    wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, background_color='blue', colormap='Pastel1', collocations=False, stopwords = new_stopwords).generate(cloud_words)
     # Set figure size
     plt.figure(figsize=(10, 10))
     # Display image
-    plt.imshow(wordcloud) 
+    plt.imshow(wordcloud)
     # No axis details
     plt.axis("off")
+
     return plt.show()
 
 
 
 def plot_pie_chart(pets_data, objects):
 
-    
+
     colors = ['lightcoral', 'yellowgreen', 'lightskyblue', 'gold']
     explode = (0, 0.1, 0, 0)  # explode 1st slice
     plt.pie(x = pets_data, explode = explode, shadow = True, colors = colors, labels = objects, startangle =90, autopct='%.1f%%')
