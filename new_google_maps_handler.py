@@ -49,7 +49,7 @@ def unpack_geocoded_data(geocoded_data):
         try:
             city_dist = geocoded_data[0]['address_components'][2]['short_name'] # get city district
         except:
-            city_dist = ''
+            city_dist = 'Nan'
             print('could not get city district')
 
     lat = geocoded_data[0]['geometry']['location']['lat'] # get lattitude

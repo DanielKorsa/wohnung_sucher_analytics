@@ -14,7 +14,7 @@ CONF_FILE = 'config.ini'
 
 UPDATE_DB = False
 CLEAN_DATA = False
-GOOGLE_GEOCODE = True
+GOOGLE_GEOCODE = False
 PRINT = True
 TO_PRINT = ['text_info']
 
@@ -54,8 +54,8 @@ if CLEAN_DATA:
 
 if GOOGLE_GEOCODE:
 
-    geo_dataset = [dataset.price > 1290] #! TESTING 
-    print(geo_dataset.info()) #? SLICE DATASET
+    #geo_dataset = [dataset.price > 1290] #! TESTING 
+    #print(geo_dataset.info()) #? SLICE DATASET
     api_key = read_ini_file(CONF_FILE, 'TOKENS', 'GMAPIKEY')
     gmaps_ref = g_maps_auth(api_key)
     city_dist_list = []
@@ -70,6 +70,8 @@ if GOOGLE_GEOCODE:
         city_dist_list.append(city_dist)
         lat_list.append(lat)
         lang_list.append(lang)
+
+
 
     dataset['cityDistrict'] = city_dist_list
     dataset['lat'] = lat_list
