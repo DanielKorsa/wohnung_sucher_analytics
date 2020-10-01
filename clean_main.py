@@ -54,8 +54,6 @@ if CLEAN_DATA:
 
 if GOOGLE_GEOCODE:
 
-    #geo_dataset = [dataset.price > 1290] #! TESTING 
-    #print(geo_dataset.info()) #? SLICE DATASET
     api_key = read_ini_file(CONF_FILE, 'TOKENS', 'GMAPIKEY')
     gmaps_ref = g_maps_auth(api_key)
     city_dist_list = []
