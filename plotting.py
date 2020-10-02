@@ -14,7 +14,7 @@ def plot_bar_chart(objects, data, title='default', ylabel='default'):
     y_pos = np.arange(len(objects))
 
     plt.bar(y_pos, data, align='center', alpha=0.5)
-    plt.xticks(y_pos, objects)
+    plt.xticks(y_pos, objects, rotation='vertical')
     plt.ylabel(ylabel)
     plt.title(title)
 
@@ -28,7 +28,7 @@ def plot_histogram(data, title, n_bins = 12):
     plt.xlim(0,24)
     plt.xticks(ticks)
     plt.xticks(fontsize=10)
-    plt.yticks(fontsize=15)
+    plt.yticks(fontsize=15, )
     plt.ylabel('Averege number of ad posts',fontsize=15)
     plt.xlabel('Time',fontsize=15)
     plt.title(title)

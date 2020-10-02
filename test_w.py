@@ -7,7 +7,35 @@ import matplotlib.pyplot as plt
 from plotting import plot_bar_chart
 
 
-TO_PRINT = []
+TO_PRINT = ['district_freq']
+
+munich_bezirke_print = [
+    'Altstadt-Lehel',
+    'Ludwigsvorstadt-Isarvorstadt',
+    'Maxvorstadt',
+    'Schwabing-West',
+    'Au-Haidhausen',
+    'Sendling',
+    'Sendling-Westpark',
+    'Schwanthalerhöhe',
+    'Neuhausen-Nymphenburg',
+    'Moosach',
+    'Milbertshofen-Am Hart',
+    'Schwabing-Freimann',
+    'Bogenhausen',
+    'Berg am Laim',
+    'Trudering-Riem',
+    'Ramersdorf-Perlach',
+    'Obergiesing-Fasangarten',
+    'Untergiesing-Harlaching',
+    'Thal-Ober-Forsten-Fürst-Solln',
+    'Hadern',
+    'Pasing-Obermenzing',
+    'Aubing-Lochhausen-Langwied',
+    'Allach-Untermenzing',
+    'Feldmoching-Hasenbergl',
+    'Laim'
+]
 
 munich_bezirke = [
     'Altstadt-Lehel',
@@ -58,14 +86,21 @@ def get_filtered_df_by(filter_value, column_name, dataset):
 
 
 # Get info about areas
+avr_prices = []
 
 for district in munich_bezirke:
 
     new_dataset = get_filtered_df_by(district, 'cityDistrict', dataset)
     avr_price = new_dataset['price'].mean()
+    avr_prices.append(avr_price)
     print('Averege price of a 2 room apartment in {} is {} euro'.format(district, "%.2f" % avr_price))
     avr_area = new_dataset['Area'].mean()
     print('Averege area of a 2 room apartment in {} is {} sq m'.format(district, "%.2f" % avr_area))
+
+
+plot_bar_chart(munich_bezirke_print, avr_prices, title= 'Price', ylabel= 'District')
+
+
 
 if 'district_freq' in TO_PRINT:
 
@@ -77,23 +112,23 @@ if 'district_freq' in TO_PRINT:
     #pprint.pprint(area_freq)
 
 
-def make_geojson_file(coords_list, file_name = 'geo.geojson'):
+def make_geojson_file(lats, langs, file_name = 'geo.geojson'):
     '''
-    coords example = [11.63 , 48.16], [11.53, 48.17]
+    coords example = [11.63 , 48.16] lat , long
     '''
 
     geo_header = {"type": "FeatureCollection", "features": []}
 
     geojson_list = []
 
-    for lang, lat in coords_list:
+    for lat, lang in zip(lats,langs):
 
         single_geodata = {
             "type": "Feature",
             "properties": {},
             "geometry": {
                 "type": "Point",
-                "coordinates": [lang, lat]
+                "coordinates": [lat, lang]
             }
         }
         geojson_list.append(single_geodata)
@@ -105,4 +140,8 @@ def make_geojson_file(coords_list, file_name = 'geo.geojson'):
         json.dump(geo_header, f)
 
 
-lats = dataset['lat']
+# lats = dataset['lat'].to_list()
+# langs = dataset['lang'].to_list()
+
+
+# make_geojson_file(langs, lats)

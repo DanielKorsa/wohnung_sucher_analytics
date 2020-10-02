@@ -12,6 +12,7 @@
 # Destribution of new flat ads per day
 # Scam graph with 500 Euro peak
 #! Avr price per district
+#! avr price per sq m
 
 
 #TODO: small things
