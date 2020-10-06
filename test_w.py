@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from plotting import plot_bar_chart
 
 
-TO_PRINT = ['district_freq']
+TO_PRINT = []
 
 munich_bezirke_print = [
     'Altstadt-Lehel',
@@ -88,17 +88,34 @@ def get_filtered_df_by(filter_value, column_name, dataset):
 # Get info about areas
 avr_prices = []
 
+inf_list = []
+
 for district in munich_bezirke:
 
+    inf = {}
     new_dataset = get_filtered_df_by(district, 'cityDistrict', dataset)
     avr_price = new_dataset['price'].mean()
-    avr_prices.append(avr_price)
     print('Averege price of a 2 room apartment in {} is {} euro'.format(district, "%.2f" % avr_price))
     avr_area = new_dataset['Area'].mean()
     print('Averege area of a 2 room apartment in {} is {} sq m'.format(district, "%.2f" % avr_area))
+    avr_sqm_price = avr_price /avr_area
+    print('Averege price in {} per sq m is {}'.format(district, "%.2f" % avr_sqm_price))
+    print('\n')
+
+    inf['district'] = district
+    inf['price'] = "%.2f" % avr_price
+    inf['avr_area'] = "%.2f" % avr_area
+    inf['avr_sqm_price'] = "%.2f" % avr_sqm_price
+
+    inf_list.append(inf)
+
+pprint.pprint(inf_list)
+dist_info = pd.DataFrame(inf_list)
+dist_info.to_csv('district_price_info.csv', sep='\t', encoding='utf-8', index=False)
 
 
-plot_bar_chart(munich_bezirke_print, avr_prices, title= 'Price', ylabel= 'District')
+#! Printing
+#plot_bar_chart(munich_bezirke_print, avr_prices, title= 'Price', ylabel= 'District')
 
 
 
