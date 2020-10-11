@@ -98,7 +98,7 @@ for district in munich_bezirke:
     print('Averege area of a 2 room apartment in {} is {} sq m'.format(district, "%.2f" % avr_area))
 
 
-plot_bar_chart(munich_bezirke_print, avr_prices, title= 'Price', ylabel= 'District')
+plot_bar_chart(munich_bezirke_print, avr_prices, title= 'Averege price per district', ylabel= 'Price, €', bar_color = '#F3A0F2')
 
 
 
@@ -107,6 +107,9 @@ if 'district_freq' in TO_PRINT:
     #! Print district distribution
     area_freq = dataset['cityDistrict'].value_counts()#.to_dict()
     area_freq.plot(kind='bar')
+    plt.ylabel('Number of listings',fontsize=12)
+    plt.title('Flat listings per area')
+    plt.bar(range(len(area_freq)), area_freq, color='#661D98')
     plt.xticks(fontsize=8)
     plt.show()
     #pprint.pprint(area_freq)
@@ -139,7 +142,7 @@ def make_geojson_file(lats, langs, file_name = 'geo.geojson'):
     with open('mygeo.geojson', 'w') as f:
         json.dump(geo_header, f)
 
-
+#! Creating GEOJSON File
 # lats = dataset['lat'].to_list()
 # langs = dataset['lang'].to_list()
 

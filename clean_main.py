@@ -16,7 +16,7 @@ UPDATE_DB = False
 CLEAN_DATA = False
 GOOGLE_GEOCODE = False
 PRINT = True
-TO_PRINT = ['text_info']
+TO_PRINT = ['text_info', 'area_price']
 
 #! UPDATING DB
 if UPDATE_DB:
@@ -32,7 +32,7 @@ else:
     '''
     Get local CLEAN copy of dataset
     '''
-    dataset = pd.read_csv('PANDAS_CLEAN_DATA.csv', sep='\t', encoding='utf-8')
+    dataset = pd.read_csv('PANDAS_GEOCODED.csv', sep='\t', encoding='utf-8')
 
 
 #! CLEANING DATA
@@ -98,24 +98,28 @@ if PRINT:
     if 'price_hist' in TO_PRINT:
 
         dataset['price'].plot(kind='density')
+        plt.ylabel('Density',fontsize=12)
+        plt.xlabel('Price, €',fontsize=12)
+        plt.title('Averege price distribution')
+        plt.yticks(fontsize=5)
         plt.show()
 
     if 'weekly_dist' in TO_PRINT:
-        weekday_title = 'Weekly new flat posting distribution'
-        weekday_ylabel = 'Averege number of ad posts'
+        weekday_title = 'Weekly apartment listing distribution'
+        weekday_ylabel = 'Apartment listings per week'
         weekday_data, weekday_objects = weekly_freq_prep(dataset['onlineSinceDate'])
         chart_week_dist = plot_bar_chart(weekday_objects, weekday_data, title=weekday_title, ylabel=weekday_ylabel)
 
     if 'daily_dist' in TO_PRINT:
 
-        hour_title = 'Day posting distribution'
+        hour_title = 'Weekly apartment listing distribution'
         hourly_freq = daily_freq_prep(dataset['onlineSinceTime'])
         chart_hour_dist = plot_histogram(data=hourly_freq,title=hour_title, n_bins=24)
 
     if 'pet_data' in TO_PRINT:
 
         pet_data_dist, pets_labels = pet_info_prep(dataset['petsAllowed'])
-        print(pets_labels)
+        pets_labels = ['No', 'Yes', 'Not specified', 'By arrangement']
         chart_pie = plot_pie_chart(pet_data_dist, pets_labels)
 
     if 'wordcloud' in TO_PRINT:
