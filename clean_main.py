@@ -1,5 +1,6 @@
 #
 import pprint
+from numpy.lib.arraypad import pad
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,7 +17,7 @@ UPDATE_DB = False
 CLEAN_DATA = False
 GOOGLE_GEOCODE = False
 PRINT = True
-TO_PRINT = ['text_info', 'area_price']
+TO_PRINT = ['text_info', 'price_hist']
 
 #! UPDATING DB
 if UPDATE_DB:
@@ -98,9 +99,11 @@ if PRINT:
     if 'price_hist' in TO_PRINT:
 
         dataset['price'].plot(kind='density')
-        plt.ylabel('Density',fontsize=12)
-        plt.xlabel('Price, €',fontsize=12)
-        plt.title('Averege price distribution')
+        plt.ylabel('Density',fontsize=15)
+        plt.xlabel('Price, €',fontsize=15, labelpad=20)
+        plt.title('Averege price distribution',fontsize=15, pad=30)
+        plt.xticks(fontsize=12)
+        plt.tick_params(axis='x', which='major', pad=10)
         plt.yticks(fontsize=5)
         plt.show()
 
