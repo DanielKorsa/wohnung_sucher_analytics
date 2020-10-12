@@ -12,7 +12,7 @@ def dynamodb_connect(db_name):
     Get AWS DynamoDB instance
     '''
 
-    dynamodb = boto3.resource('dynamodb')
+    dynamodb = boto3.resource('dynamodb',region_name='eu-central-1')
     table = dynamodb.Table(db_name)
 
     return table

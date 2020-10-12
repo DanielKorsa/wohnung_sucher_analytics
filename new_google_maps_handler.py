@@ -39,19 +39,28 @@ def geocode_address(gmaps_ref, address):
 
     return full_info
 
-def unpack_geocoded_data(geocoded_data):
+def unpack_geocoded_data(geocoded_data, address):
     '''
     Unpack google maps api returned msg
     '''
-    try:
-        city_dist = geocoded_data[0]['address_components'][2]['long_name'] # get city district
-    except:
+    if address[0].isdigit():
         try:
-            city_dist = geocoded_data[0]['address_components'][2]['short_name'] # get city district
+            city_dist = geocoded_data[0]['address_components'][1]['long_name'] # get city district
         except:
-            city_dist = 'Nan'
-            print('could not get city district')
-
+            try:
+                city_dist = geocoded_data[0]['address_components'][2]['short_name'] # get city district
+            except:
+                city_dist = 'Nan'
+                print('could not get city district')
+    else:
+        try:
+            city_dist = geocoded_data[0]['address_components'][2]['long_name'] # get city district
+        except:
+            try:
+                city_dist = geocoded_data[0]['address_components'][2]['short_name'] # get city district
+            except:
+                city_dist = 'Nan'
+                print('could not get city district')
     lat = geocoded_data[0]['geometry']['location']['lat'] # get lattitude
     lang = geocoded_data[0]['geometry']['location']['lng']# get langitude
 

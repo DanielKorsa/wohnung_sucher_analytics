@@ -1,5 +1,7 @@
 #
+import time
 import pprint
+import json
 from numpy.lib.arraypad import pad
 import pandas as pd
 import numpy as np
@@ -8,7 +10,7 @@ import matplotlib.pyplot as plt
 from db_handler import dynamodb_connect, scan_db
 from data_cleaning import clean_price, clean_online_since_date, clean_online_since_time, clean_description, clean_address_data
 from plotting_data_prep import weekly_freq_prep, daily_freq_prep, pet_info_prep
-from plotting import plot_bar_chart, plot_histogram, plot_pie_chart, plot_wordcloud
+from plotting import plot_bar_chart, plot_histogram, plot_pie_chart, plot_wordcloud, plot_hist_pd
 from new_google_maps_handler import geocode_address, read_ini_file, g_maps_auth, unpack_geocoded_data
 
 CONF_FILE = 'config.ini'
@@ -17,7 +19,14 @@ UPDATE_DB = False
 CLEAN_DATA = False
 GOOGLE_GEOCODE = False
 PRINT = True
-TO_PRINT = ['text_info', 'price_hist']
+TO_PRINT = [
+    'text_info',
+    #'price_hist',
+    #'weekly_dist',
+    #'daily_dist', 
+    'pet_data',
+    #'wordcloud'
+]
 
 #! UPDATING DB
 if UPDATE_DB:
@@ -27,13 +36,13 @@ if UPDATE_DB:
     db_instance = dynamodb_connect('wohnung_sucher_db')
     db_full_content = scan_db(db_instance,'source', 'immoscout24')
     dataset = pd.DataFrame(db_full_content)
-    #dataset.to_csv('PANDAS_CSV.csv', sep='\t', encoding='utf-8', index=False)
+    dataset.to_csv('PANDAS_CSV_LAST.csv', sep='\t', encoding='utf-8', index=False) #save db in csv
 
 else:
     '''
     Get local CLEAN copy of dataset
     '''
-    dataset = pd.read_csv('PANDAS_GEOCODED.csv', sep='\t', encoding='utf-8')
+    dataset = pd.read_csv('PANDAS_GEOCODED_LAST.csv', sep='\t', encoding='utf-8')
 
 
 #! CLEANING DATA
@@ -44,6 +53,7 @@ if CLEAN_DATA:
     dataset.drop(columns_to_drop, inplace=True, axis=1)
 
     dataset['Area'] = dataset['Area'].apply(lambda area: float(area.split(' ')[0].replace(',','.'))) # clean Area data
+    #dataset['DirtyPrice'] = dataset['price'].apply(clean_price) # Price with scam
     dataset['price'] = dataset['price'].apply(clean_price) # Clean price from . ,
     dataset['petsAllowed'] = dataset['petsAllowed'].fillna(value='Not Specified') # Fill PetsAllowed NaN with Nach Vereinbarung
     dataset['onlineSinceDate'] = dataset['onlineSince'].apply(clean_online_since_date)
@@ -51,7 +61,7 @@ if CLEAN_DATA:
     dataset['formattedAddress'] = dataset['address'].apply(clean_address_data)
     dataset.drop('onlineSince', inplace=True, axis=1) #TODO cheeck why index shifts
     #! write clean data to csv
-    dataset.to_csv('PANDAS_CLEAN_DATA.csv', sep='\t', encoding='utf-8', index=False)
+    dataset.to_csv('PANDAS_CLEAN_DATA_LAST.csv', sep='\t', encoding='utf-8', index=False)
 
 if GOOGLE_GEOCODE:
 
@@ -62,22 +72,28 @@ if GOOGLE_GEOCODE:
     lang_list = []
 
     addresses = dataset['formattedAddress'].tolist()
+    geocode_result_json_list = []
+
     for address in addresses:
-        print(address)
+        #print(address)
         geocoded_data = geocode_address(gmaps_ref, address)
-        city_dist, lat, lang = unpack_geocoded_data(geocoded_data)
+
+        city_dist, lat, lang = unpack_geocoded_data(geocoded_data, address)
         city_dist_list.append(city_dist)
+        print(city_dist)
+        #time.sleep(2)#!
         lat_list.append(lat)
         lang_list.append(lang)
-
-
+        geocode_result_json_list.append(geocoded_data[0])
 
     dataset['cityDistrict'] = city_dist_list
     dataset['lat'] = lat_list
     dataset['lang'] = lang_list
 
     #! write clean data to csv
-    dataset.to_csv('PANDAS_GEOCODED.csv', sep='\t', encoding='utf-8', index=False)
+    dataset.to_csv('PANDAS_GEOCODED_LAST.csv', sep='\t', encoding='utf-8', index=False)
+    with open('GMAPS_FULL_DATA_LAST.json', 'w') as fout:
+        json.dump(geocode_result_json_list, fout)
 
 #! PRINTING & PLOTTING
 if PRINT:
@@ -98,14 +114,18 @@ if PRINT:
 
     if 'price_hist' in TO_PRINT:
 
-        dataset['price'].plot(kind='density')
-        plt.ylabel('Density',fontsize=15)
-        plt.xlabel('Price, €',fontsize=15, labelpad=20)
-        plt.title('Averege price distribution',fontsize=15, pad=30)
-        plt.xticks(fontsize=12)
-        plt.tick_params(axis='x', which='major', pad=10)
-        plt.yticks(fontsize=5)
-        plt.show()
+        real_prices_plt = plot_hist_pd(dataset['price'],
+                                        'Averege price distribution including fake flats',
+                                        'Density',
+                                        'Price, €'
+                                    )
+
+        clean_price_dataset = dataset[~(dataset['price'] < 600)]  
+        real_prices_plt = plot_hist_pd(clean_price_dataset['price'],
+                                        'Averege price distribution excluding fake flat',
+                                        'Density',
+                                        'Price, €'
+                                    )
 
     if 'weekly_dist' in TO_PRINT:
         weekday_title = 'Weekly apartment listing distribution'
@@ -115,7 +135,7 @@ if PRINT:
 
     if 'daily_dist' in TO_PRINT:
 
-        hour_title = 'Weekly apartment listing distribution'
+        hour_title = 'Daily apartment listing distribution'
         hourly_freq = daily_freq_prep(dataset['onlineSinceTime'])
         chart_hour_dist = plot_histogram(data=hourly_freq,title=hour_title, n_bins=24)
 
