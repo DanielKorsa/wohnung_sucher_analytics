@@ -4,10 +4,10 @@ import pandas as pd
 import numpy as np
 import json
 import matplotlib.pyplot as plt
-from plotting import plot_bar_chart
+from plotting import plot_bar_chart, plot_bar_chart_dists
 
 
-TO_PRINT = ['district_freq']
+TO_PRINT = ['district_avr_price']
 
 munich_bezirke_print = [
     'Altstadt-Lehel',
@@ -82,37 +82,40 @@ def get_filtered_df_by(filter_value, column_name, dataset):
 
     return filtered_dataset
 
+FONT = {'fontname':'Arial'}
+TITLE_S = 27
+LABEL_S = 23
+
+if 'district_avr_price' in TO_PRINT:
+
+    # Get info about areas
+    avr_prices = []
+    clean_price_dataset = dataset[~(dataset['price'] < 600)] 
+    for district in munich_bezirke:
+        
+        new_dataset = get_filtered_df_by(district, 'cityDistrict', clean_price_dataset)
+        avr_price = new_dataset['price'].mean()
+        avr_prices.append(avr_price)
+        print('Averege price of a 2 room apartment in {} is {} euro'.format(district, "%.2f" % avr_price))
+        avr_area = new_dataset['Area'].mean()
+        print('Averege area of a 2 room apartment in {} is {} sq m'.format(district, "%.2f" % avr_area))
 
 
-
-# Get info about areas
-avr_prices = []
-
-for district in munich_bezirke:
-
-    new_dataset = get_filtered_df_by(district, 'cityDistrict', dataset)
-    avr_price = new_dataset['price'].mean()
-    avr_prices.append(avr_price)
-    print('Averege price of a 2 room apartment in {} is {} euro'.format(district, "%.2f" % avr_price))
-    avr_area = new_dataset['Area'].mean()
-    print('Averege area of a 2 room apartment in {} is {} sq m'.format(district, "%.2f" % avr_area))
-
-
-plot_bar_chart(munich_bezirke_print, avr_prices, title= 'Averege price per district', ylabel= 'Price, €', bar_color = '#F3A0F2')
-
+    plot_bar_chart_dists(munich_bezirke_print, avr_prices, title= 'Averege price per district', ylabel= 'Price, €', bar_color = '#F3A0F2')
 
 
 if 'district_freq' in TO_PRINT:
 
     #! Print district distribution
-    area_freq = dataset['cityDistrict'].value_counts()#.to_dict()
+    area_freq = dataset['cityDistrict'].value_counts()
     area_freq.plot(kind='bar')
-    plt.ylabel('Number of listings',fontsize=12)
-    plt.title('Flat listings per area')
+    plt.ylabel('Number of listings',fontsize=LABEL_S, labelpad=20, weight = 'bold', **FONT)
+    plt.title('Flat listings per area', fontsize=TITLE_S, pad=30, style='italic', **FONT)
     plt.bar(range(len(area_freq)), area_freq, color='#661D98')
-    plt.xticks(fontsize=8)
+    plt.xticks(fontsize=19, **FONT)
+    plt.yticks(fontsize=19, **FONT)
     plt.show()
-    #pprint.pprint(area_freq)
+    
 
 
 def make_geojson_file(lats, langs, file_name = 'geo.geojson'):

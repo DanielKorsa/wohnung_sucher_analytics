@@ -24,7 +24,7 @@ TO_PRINT = [
     #'price_hist',
     #'weekly_dist',
     #'daily_dist', 
-    'pet_data',
+    #'pet_data',
     #'wordcloud'
 ]
 
@@ -142,7 +142,7 @@ if PRINT:
     if 'pet_data' in TO_PRINT:
 
         pet_data_dist, pets_labels = pet_info_prep(dataset['petsAllowed'])
-        pets_labels = ['No', 'Yes', 'Not specified', 'By arrangement']
+        pets_labels = ['No', 'Not specified', 'By arrangement', 'Yes']
         chart_pie = plot_pie_chart(pet_data_dist, pets_labels)
 
     if 'wordcloud' in TO_PRINT:
@@ -152,7 +152,7 @@ if PRINT:
         # Generate word cloud
         my_stopwords_list = [
             'mit', 'zi', 'im', 'voll', 'whg', 'und', 'von', 'der', 'die',
-            'nach', 'ab', 'uhr', 'um', 'zum', 'für', 'whg', 'eg', 'iw'
+            'nach', 'ab', 'uhr', 'um', 'zum', 'für', 'whg', 'eg', 'iw', 'ebk', 'zimmerwohnung'
         ]
         additional_stopwords = ['münchen','zimmer', 'wohnung']
         my_stopwords_list.extend(additional_stopwords) # add some extra stop words

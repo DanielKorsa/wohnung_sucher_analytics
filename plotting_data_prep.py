@@ -25,7 +25,7 @@ def daily_freq_prep(data_column):
 
 def pet_info_prep(data_column):
 
-    pets_labels = ['Nein', 'Ja','Not Specified', 'Nach Vereinbarung']
+    pets_labels = ['Nein', 'Not Specified', 'Nach Vereinbarung', 'Ja']
     sorted_pets_data = data_column.value_counts().to_dict()
     pet_data_dist = []
 
