@@ -6,10 +6,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 #
 from db_handler import dynamodb_connect, scan_db
-from data_cleaning import clean_price, clean_online_since_date, clean_online_since_time, clean_description, clean_address_data
-from plotting_data_prep import weekly_freq_prep, daily_freq_prep, pet_info_prep
-from plotting import plot_bar_chart, plot_histogram, plot_pie_chart, plot_wordcloud
-from new_google_maps_handler import geocode_address, read_ini_file, g_maps_auth, unpack_geocoded_data
+from data_cleaning import (
+    clean_price,
+    clean_online_since_date,
+    clean_online_since_time,
+    clean_description,
+    clean_address_data
+)
+from plotting_data_prep import (
+    weekly_freq_prep,
+    daily_freq_prep,
+    pet_info_prep
+)
+from plotting import (plot_bar_chart,
+plot_histogram,
+plot_pie_chart)
+#from plotting import #plot_wordcloud #? New version of wordcloud needs MVS 14.0 +
+from new_google_maps_handler import (
+    geocode_address,
+    read_ini_file,
+    g_maps_auth,
+    unpack_geocoded_data
+)
 
 CONF_FILE = 'config.ini'
 
@@ -36,10 +54,8 @@ else:
     dataset = pd.read_csv('PANDAS_GEOCODED.csv', sep='\t', encoding='utf-8')
 
 
-#! CLEANING DATA
-#TODO mb put it to data_cleaning.py ???
 if CLEAN_DATA:
-
+    # Cleaning data
     columns_to_drop = ['email', 'phone', 'source'] # Remove columns which are not used
     dataset.drop(columns_to_drop, inplace=True, axis=1)
 
