@@ -5,46 +5,56 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 #
-from db_handler import dynamodb_connect, scan_db
-from data_cleaning import (
+from handlers.db_handler import dynamodb_connect, scan_db
+from handlers.data_handler import (
     clean_price,
     clean_online_since_date,
     clean_online_since_time,
     clean_description,
-    clean_address_data
-)
-from plotting_data_prep import (
+    clean_address_data,
     weekly_freq_prep,
     daily_freq_prep,
     pet_info_prep
-)
-from plotting import (plot_bar_chart,
-plot_histogram,
-plot_pie_chart)
+    )
+
+from handlers.plot_handler import (
+    plot_bar_chart,
+    plot_histogram,
+    plot_pie_chart
+    )
+
 #from plotting import #plot_wordcloud #? New version of wordcloud needs MVS 14.0 +
-from new_google_maps_handler import (
+from handlers.google_maps_handler import (
     geocode_address,
     read_ini_file,
     g_maps_auth,
     unpack_geocoded_data
-)
+    )
 
 CONF_FILE = 'config.ini'
-
-UPDATE_DB = False
-CLEAN_DATA = False
-GOOGLE_GEOCODE = False
-PRINT = True
+UPDATE_DB = False # Use AWS/Local data
+CLEAN_DATA = False # Clean data y/n?
+GOOGLE_GEOCODE = False # Use Google Geocoding/local ge data
+PRINT = True # Print values
 TO_PRINT = ['text_info', 'price_hist']
+VIZ = {'text_info': True,
+        'price_hist': True,
+        'weekly_dist': False,
+        'daily_dist': False,
+        'pet_data': False,
+        'wordcloud': False,
+        'area_price': False
+        }
 
-#! UPDATING DB
+
 if UPDATE_DB:
     '''
-    Update dataset from AWS DynamoDB
+    Get fresh dataset from AWS DynamoDB
     '''
     db_instance = dynamodb_connect('wohnung_sucher_db')
     db_full_content = scan_db(db_instance,'source', 'immoscout24')
     dataset = pd.DataFrame(db_full_content)
+    # Save dataset to .csv
     #dataset.to_csv('PANDAS_CSV.csv', sep='\t', encoding='utf-8', index=False)
 
 else:
@@ -52,7 +62,6 @@ else:
     Get local CLEAN copy of dataset
     '''
     dataset = pd.read_csv('PANDAS_GEOCODED.csv', sep='\t', encoding='utf-8')
-
 
 if CLEAN_DATA:
     # Cleaning data
@@ -70,7 +79,7 @@ if CLEAN_DATA:
     dataset.to_csv('PANDAS_CLEAN_DATA.csv', sep='\t', encoding='utf-8', index=False)
 
 if GOOGLE_GEOCODE:
-
+    # Use Google Cloud to geocode data
     api_key = read_ini_file(CONF_FILE, 'TOKENS', 'GMAPIKEY')
     gmaps_ref = g_maps_auth(api_key)
     city_dist_list = []
@@ -79,20 +88,19 @@ if GOOGLE_GEOCODE:
 
     addresses = dataset['formattedAddress'].tolist()
     for address in addresses:
-        print(address)
+        #print(address)
         geocoded_data = geocode_address(gmaps_ref, address)
         city_dist, lat, lang = unpack_geocoded_data(geocoded_data)
         city_dist_list.append(city_dist)
         lat_list.append(lat)
         lang_list.append(lang)
 
-
-
+    # Add geocoded data to dataset
     dataset['cityDistrict'] = city_dist_list
     dataset['lat'] = lat_list
     dataset['lang'] = lang_list
 
-    #! write clean data to csv
+    # Write dataset to .csv
     dataset.to_csv('PANDAS_GEOCODED.csv', sep='\t', encoding='utf-8', index=False)
 
 #! PRINTING & PLOTTING
@@ -153,7 +161,7 @@ if PRINT:
         additional_stopwords = ['münchen','zimmer', 'wohnung']
         my_stopwords_list.extend(additional_stopwords) # add some extra stop words
 
-        cloud = plot_wordcloud(clean_descriptions, my_stopwords_list)
+        #cloud = plot_wordcloud(clean_descriptions, my_stopwords_list)
 
     if 'area_price' in TO_PRINT: #? Still dunno how to implement
 
@@ -166,12 +174,3 @@ if PRINT:
         #ax = tosort_area_price['price'].plot()
         #tosort_area_price['price'].plot(ax=ax)
         #print(tosort_area_price.info())
-
-
-
-
-#! Pandas info prints
-#print(list(dataset)) # Get headers
-# print(dataset.head(3)) # Get first N dataframe values
-# print(dataset.info()) # Get dataset info
-# print(dataset.dtypes)

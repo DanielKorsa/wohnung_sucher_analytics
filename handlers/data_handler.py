@@ -135,9 +135,6 @@ def clean_address_data(address_str):
 #! From plotting_data_prep
 
 
-#
-from data_cleaning import conv_datestr_to_weekday
-
 def weekly_freq_prep(data_column):
     '''
     '''
