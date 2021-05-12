@@ -137,7 +137,6 @@ def daily_freq_prep(data_column):
 
     return hourly_freq
 
-
 def pet_info_prep(data_column):
     """[Prepare data for pie chart]
 

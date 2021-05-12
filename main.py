@@ -36,7 +36,6 @@ UPDATE_DB = False # Use AWS/Local data
 CLEAN_DATA = False # Clean data y/n?
 GOOGLE_GEOCODE = False # Use Google Geocoding/local ge data
 PRINT = True # Print values
-TO_PRINT = ['text_info', 'price_hist']
 VIZ = {'text_info': True,
         'price_hist': True,
         'weekly_dist': False,
@@ -45,7 +44,6 @@ VIZ = {'text_info': True,
         'wordcloud': False,
         'area_price': False
         }
-
 
 if UPDATE_DB:
     '''
@@ -106,8 +104,8 @@ if GOOGLE_GEOCODE:
 #! PRINTING & PLOTTING
 if PRINT:
 
-    if 'text_info' in TO_PRINT:
-
+    if VIZ['text_info']:
+        # Print analyzed text data
         avr_area = dataset['Area'].mean()
         print('Averege area of a 2 room apartment in Munich is {} sq m'.format("%.2f" % avr_area))
 
@@ -119,9 +117,8 @@ if PRINT:
         no_address_perc = (trues / (falses + trues)) * 100
         print('Only {} percent of ads reveal the real address'.format("%.1f" % no_address_perc))
 
-
-    if 'price_hist' in TO_PRINT:
-
+    if VIZ['price_hist']:
+        # Plot price histogram
         dataset['price'].plot(kind='density')
         plt.ylabel('Density',fontsize=15)
         plt.xlabel('Price, €',fontsize=15, labelpad=20)
@@ -131,28 +128,28 @@ if PRINT:
         plt.yticks(fontsize=5)
         plt.show()
 
-    if 'weekly_dist' in TO_PRINT:
+    if VIZ['weekly_dist']:
+        # Plot weekly distribution graph
         weekday_title = 'Weekly apartment listing distribution'
         weekday_ylabel = 'Apartment listings per week'
         weekday_data, weekday_objects = weekly_freq_prep(dataset['onlineSinceDate'])
         chart_week_dist = plot_bar_chart(weekday_objects, weekday_data, title=weekday_title, ylabel=weekday_ylabel)
 
-    if 'daily_dist' in TO_PRINT:
-
+    if VIZ['daily_dist']:
+        # Plot daily distribution graph
         hour_title = 'Weekly apartment listing distribution'
         hourly_freq = daily_freq_prep(dataset['onlineSinceTime'])
         chart_hour_dist = plot_histogram(data=hourly_freq,title=hour_title, n_bins=24)
 
-    if 'pet_data' in TO_PRINT:
-
+    if VIZ['pet_data']:
+        # Plot bar chat - pet allowed/not data
         pet_data_dist, pets_labels = pet_info_prep(dataset['petsAllowed'])
         pets_labels = ['No', 'Yes', 'Not specified', 'By arrangement']
         chart_pie = plot_pie_chart(pet_data_dist, pets_labels)
 
-    if 'wordcloud' in TO_PRINT:
-
+    if VIZ['wordcloud']:
+        # Print world cloud
         clean_descriptions = clean_description(dataset['description'])
-
         # Generate word cloud
         my_stopwords_list = [
             'mit', 'zi', 'im', 'voll', 'whg', 'und', 'von', 'der', 'die',
@@ -163,7 +160,7 @@ if PRINT:
 
         #cloud = plot_wordcloud(clean_descriptions, my_stopwords_list)
 
-    if 'area_price' in TO_PRINT: #? Still dunno how to implement
+    if VIZ['area_price']: #? Still dunno how to implement
 
         tosort_area_price = dataset[['Area','price']].copy()
         tosort_area_price.sort_values(by=['Area'], inplace=True)
