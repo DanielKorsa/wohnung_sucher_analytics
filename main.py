@@ -2,7 +2,6 @@
 import pprint
 from numpy.lib.arraypad import pad
 import pandas as pd
-import matplotlib.pyplot as plt
 #
 from handlers.db_handler import dynamodb_connect, scan_db
 from handlers.data_handler import (
