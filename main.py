@@ -2,7 +2,6 @@
 import pprint
 from numpy.lib.arraypad import pad
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 #
 from handlers.db_handler import dynamodb_connect, scan_db
@@ -19,8 +18,10 @@ from handlers.data_handler import (
 
 from handlers.plot_handler import (
     plot_bar_chart,
+    plot_density,
     plot_histogram,
-    plot_pie_chart
+    plot_pie_chart,
+    plot_density
     )
 
 #from plotting import #plot_wordcloud #? New version of wordcloud needs MVS 14.0 +
@@ -42,7 +43,7 @@ VIZ = {'text_info': True,
         'daily_dist': False,
         'pet_data': False,
         'wordcloud': False,
-        'area_price': False
+        'area_price': True
         }
 
 if UPDATE_DB:
@@ -59,7 +60,7 @@ else:
     '''
     Get local CLEAN copy of dataset
     '''
-    dataset = pd.read_csv('PANDAS_GEOCODED.csv', sep='\t', encoding='utf-8')
+    dataset = pd.read_csv('data\PANDAS_GEOCODED.csv', sep='\t', encoding='utf-8')
 
 if CLEAN_DATA:
     # Cleaning data
@@ -74,7 +75,7 @@ if CLEAN_DATA:
     dataset['formattedAddress'] = dataset['address'].apply(clean_address_data)
     dataset.drop('onlineSince', inplace=True, axis=1) #TODO cheeck why index shifts
     #! write clean data to csv
-    dataset.to_csv('PANDAS_CLEAN_DATA.csv', sep='\t', encoding='utf-8', index=False)
+    dataset.to_csv('data\PANDAS_CLEAN_DATA.csv', sep='\t', encoding='utf-8', index=False)
 
 if GOOGLE_GEOCODE:
     # Use Google Cloud to geocode data
@@ -85,8 +86,8 @@ if GOOGLE_GEOCODE:
     lang_list = []
 
     addresses = dataset['formattedAddress'].tolist()
+    # Get langitude & lattitude
     for address in addresses:
-        #print(address)
         geocoded_data = geocode_address(gmaps_ref, address)
         city_dist, lat, lang = unpack_geocoded_data(geocoded_data)
         city_dist_list.append(city_dist)
@@ -118,15 +119,9 @@ if PRINT:
         print('Only {} percent of ads reveal the real address'.format("%.1f" % no_address_perc))
 
     if VIZ['price_hist']:
-        # Plot price histogram
-        dataset['price'].plot(kind='density')
-        plt.ylabel('Density',fontsize=15)
-        plt.xlabel('Price, €',fontsize=15, labelpad=20)
-        plt.title('Averege price distribution',fontsize=15, pad=30)
-        plt.xticks(fontsize=12)
-        plt.tick_params(axis='x', which='major', pad=10)
-        plt.yticks(fontsize=5)
-        plt.show()
+        # Density plot
+        title = 'Averege price distribution'
+        density_plt = plot_density(dataset['price'], title, 'Density', 'Price, €')
 
     if VIZ['weekly_dist']:
         # Plot weekly distribution graph
@@ -160,14 +155,3 @@ if PRINT:
 
         #cloud = plot_wordcloud(clean_descriptions, my_stopwords_list)
 
-    if VIZ['area_price']: #? Still dunno how to implement
-
-        tosort_area_price = dataset[['Area','price']].copy()
-        tosort_area_price.sort_values(by=['Area'], inplace=True)
-        #tosort_area_price.plot(x ='Area', y='price', kind = 'line')
-        plt.show()
-        print(tosort_area_price.head(10))
-        #plt.show()
-        #ax = tosort_area_price['price'].plot()
-        #tosort_area_price['price'].plot(ax=ax)
-        #print(tosort_area_price.info())
