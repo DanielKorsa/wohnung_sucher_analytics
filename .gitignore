@@ -1,3 +1,4 @@
+
 # Additional
 
 test.py
@@ -15,12 +16,15 @@ test.json
 ws_db.json
 .vscode
 mygeo.geojson
-data/
+#data/
 
 #
 *.csv
 *.pdf
 *.json
+
+# Allow
+!data/immoscout24_ds.csv
 
 
 # Byte-compiled / optimized / DLL files

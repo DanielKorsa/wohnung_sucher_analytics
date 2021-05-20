@@ -53,13 +53,13 @@ if UPDATE_DB:
     db_full_content = scan_db(db_instance,'source', 'immoscout24')
     dataset = pd.DataFrame(db_full_content)
     # Save dataset to .csv
-    #dataset.to_csv('PANDAS_CSV.csv', sep='\t', encoding='utf-8', index=False)
+    #dataset.to_csv('.csv', sep='\t', encoding='utf-8', index=False)
 
 else:
     '''
     Get local CLEAN copy of dataset
     '''
-    dataset = pd.read_csv('data\PANDAS_GEOCODED.csv', sep='\t', encoding='utf-8')
+    dataset = pd.read_csv('data\immoscout24_ds.csv', sep='\t', encoding='utf-8')
 
 if CLEAN_DATA:
     # Cleaning data
@@ -74,10 +74,11 @@ if CLEAN_DATA:
     dataset['formattedAddress'] = dataset['address'].apply(clean_address_data)
     dataset.drop('onlineSince', inplace=True, axis=1) #TODO cheeck why index shifts
     #! write clean data to csv
-    dataset.to_csv('data\PANDAS_CLEAN_DATA.csv', sep='\t', encoding='utf-8', index=False)
+    dataset.to_csv('data\immoscout24_ds.csv', sep='\t', encoding='utf-8', index=False)
 
 if GOOGLE_GEOCODE:
     # Use Google Cloud to geocode data
+    # You would need to register and get API key to use this functionality
     api_key = read_ini_file(CONF_FILE, 'TOKENS', 'GMAPIKEY')
     gmaps_ref = g_maps_auth(api_key)
     city_dist_list = []
@@ -99,7 +100,7 @@ if GOOGLE_GEOCODE:
     dataset['lang'] = lang_list
 
     # Write dataset to .csv
-    dataset.to_csv('PANDAS_GEOCODED.csv', sep='\t', encoding='utf-8', index=False)
+    dataset.to_csv('GEOCODED_DS.csv', sep='\t', encoding='utf-8', index=False)
 
 #! PRINTING & PLOTTING
 if PRINT:
