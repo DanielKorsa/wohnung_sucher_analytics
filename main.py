@@ -1,207 +1,157 @@
-
-
-# TODO
-# + Averege area
-# + Averege price
-# + Most popular words in description
-# + Pets allowed/no
-# How long it stayed alive (until ads got disabled)
-# Heatmap of prices/ locations to prove that city center is not more expensive
-# Hearmap of offers - which district is the hootest and has more offers?
-# Averege rooms ?? area??
-# Area with most amount of immobilien offers
-# + Destribution of new flat ADS per week
-# + Destribution of new flat ads per day
-# % of flats listed with full address
-
-
-from data_cleaning import int_float_price, clean_price, clean_online_since, conv_date_obj, int_float, get_weekday, get_online_hour, clean_description
-from plotting import plot_bar_chart, plot_histogram, plot_cloud, plot_pie_chart
-from db_handler import ini_tiny_db, dynamodb_connect, local_db_insert_data, scan_db
-from tinydb import TinyDB, Query #TODO: redo later
-from collections import Counter
-from wordcloud import WordCloud, STOPWORDS
+#
 import pprint
-import collections
+from numpy.lib.arraypad import pad
+import pandas as pd
+#
+from handlers.db_handler import dynamodb_connect, scan_db
+from handlers.data_handler import (
+    clean_price,
+    clean_online_since_date,
+    clean_online_since_time,
+    clean_description,
+    clean_address_data,
+    weekly_freq_prep,
+    daily_freq_prep,
+    pet_info_prep
+    )
 
-UPDATEDBFROMAWS = False
-CLEANFAKEADS = True
+from handlers.plot_handler import (
+    plot_bar_chart,
+    plot_density,
+    plot_histogram,
+    plot_pie_chart,
+    plot_density
+    )
 
-local_db = ini_tiny_db('wohnung_sucher_analytics_db.json')
+#from plotting import #plot_wordcloud #? New version of wordcloud needs MVS 14.0 +
+from handlers.google_maps_handler import (
+    geocode_address,
+    read_ini_file,
+    g_maps_auth,
+    unpack_geocoded_data
+    )
 
+CONF_FILE = 'config.ini'
+UPDATE_DB = False # Use AWS/Local data
+CLEAN_DATA = False # Clean data y/n?
+GOOGLE_GEOCODE = False # Use Google Geocoding/local ge data
+PRINT = True # Print values
+VIZ = {'text_info': True,
+        'price_hist': True,
+        'weekly_dist': False,
+        'daily_dist': False,
+        'pet_data': False,
+        'wordcloud': False,
+        'area_price': True
+        }
 
-if UPDATEDBFROMAWS:
+if UPDATE_DB:
+    '''
+    Get fresh dataset from AWS DynamoDB
+    '''
     db_instance = dynamodb_connect('wohnung_sucher_db')
     db_full_content = scan_db(db_instance,'source', 'immoscout24')
-    local_db_insert_data(db_full_content, local_db)
-    #pprint.pprint(db_full_content)
+    dataset = pd.DataFrame(db_full_content)
+    # Save dataset to .csv
+    #dataset.to_csv('.csv', sep='\t', encoding='utf-8', index=False)
 
-flat = Query()
-data = local_db.search(flat['source'] == 'immoscout24')
+else:
+    '''
+    Get local CLEAN copy of dataset
+    '''
+    dataset = pd.read_csv('data\immoscout24_ds.csv', sep='\t', encoding='utf-8')
 
-print('There were {} 2 room apartment offers from 23.08 - 23.09'.format(len(data)))
-#! Clean duplicates based on address
-#! Clean data from fake ads
-if CLEANFAKEADS:
-    
+if CLEAN_DATA:
+    # Cleaning data
+    columns_to_drop = ['email', 'phone', 'source'] # Remove columns which are not used
+    dataset.drop(columns_to_drop, inplace=True, axis=1)
 
+    dataset['Area'] = dataset['Area'].apply(lambda area: float(area.split(' ')[0].replace(',','.'))) # clean Area data
+    dataset['price'] = dataset['price'].apply(clean_price) # Clean price from . ,
+    dataset['petsAllowed'] = dataset['petsAllowed'].fillna(value='Not Specified') # Fill PetsAllowed NaN with Nach Vereinbarung
+    dataset['onlineSinceDate'] = dataset['onlineSince'].apply(clean_online_since_date)
+    dataset['onlineSinceTime'] = dataset['onlineSince'].apply(clean_online_since_time)
+    dataset['formattedAddress'] = dataset['address'].apply(clean_address_data)
+    dataset.drop('onlineSince', inplace=True, axis=1) #TODO cheeck why index shifts
+    #! write clean data to csv
+    dataset.to_csv('data\immoscout24_ds.csv', sep='\t', encoding='utf-8', index=False)
 
-# Get averege flat area
-areas_data = []
-for area in data:
-    areas_data.append(int_float(area['Area'].split(' ')[0]))
+if GOOGLE_GEOCODE:
+    # Use Google Cloud to geocode data
+    # You would need to register and get API key to use this functionality
+    api_key = read_ini_file(CONF_FILE, 'TOKENS', 'GMAPIKEY')
+    gmaps_ref = g_maps_auth(api_key)
+    city_dist_list = []
+    lat_list = []
+    lang_list = []
 
-avrg_area = sum(areas_data) / len(areas_data)
-print('Averege area of a 2 room apartment in Munich is {} sq m'.format("%.2f" % avrg_area))
+    addresses = dataset['formattedAddress'].tolist()
+    # Get langitude & lattitude
+    for address in addresses:
+        geocoded_data = geocode_address(gmaps_ref, address)
+        city_dist, lat, lang = unpack_geocoded_data(geocoded_data)
+        city_dist_list.append(city_dist)
+        lat_list.append(lat)
+        lang_list.append(lang)
 
+    # Add geocoded data to dataset
+    dataset['cityDistrict'] = city_dist_list
+    dataset['lat'] = lat_list
+    dataset['lang'] = lang_list
 
-# Get averege flat prices
-prices_data = []
-for price in data:
-    prices_data.append(clean_price(price['price'].split(' ')[0]))
+    # Write dataset to .csv
+    dataset.to_csv('GEOCODED_DS.csv', sep='\t', encoding='utf-8', index=False)
 
-avrg_price = sum(prices_data) / len(prices_data)
-print('Averege price of a 2 room apartment in Munich is {} euro'.format("%.2f" % avrg_price))
+#! PRINTING & PLOTTING
+if PRINT:
 
-# Print price destribution plot
-import seaborn as sns
-import pandas as pd
-import matplotlib.pyplot as plt
-#df=pd.DataFrame({'prices' : prices_data})
+    if VIZ['text_info']:
+        # Print analyzed text data
+        avr_area = dataset['Area'].mean()
+        print('Averege area of a 2 room apartment in Munich is {} sq m'.format("%.2f" % avr_area))
 
-pd.DataFrame(prices_data).plot(kind='density')
-#plt.show() #! PLOT price distribution
+        avr_price = dataset['price'].mean()
+        print('Averege price of a 2 room apartment in Munich is {} euro'.format("%.2f" % avr_price))
 
+        no_address = dataset['formattedAddress'].apply(lambda only_post: only_post.split(' ')[0].isdigit())
+        falses, trues = no_address.value_counts().to_list() # trues = full address is not provided
+        no_address_perc = (trues / (falses + trues)) * 100
+        print('Only {} percent of ads reveal the real address'.format("%.1f" % no_address_perc))
 
-pd.DataFrame(areas_data).plot(kind='density')
-#plt.show() #! PLOT price distribution
+    if VIZ['price_hist']:
+        # Density plot
+        title = 'Averege price distribution'
+        density_plt = plot_density(dataset['price'], title, 'Density', 'Price, €')
 
-# Area to price correlation
+    if VIZ['weekly_dist']:
+        # Plot weekly distribution graph
+        weekday_title = 'Weekly apartment listing distribution'
+        weekday_ylabel = 'Apartment listings per week'
+        weekday_data, weekday_objects = weekly_freq_prep(dataset['onlineSinceDate'])
+        chart_week_dist = plot_bar_chart(weekday_objects, weekday_data, title=weekday_title, ylabel=weekday_ylabel)
 
+    if VIZ['daily_dist']:
+        # Plot daily distribution graph
+        hour_title = 'Weekly apartment listing distribution'
+        hourly_freq = daily_freq_prep(dataset['onlineSinceTime'])
+        chart_hour_dist = plot_histogram(data=hourly_freq,title=hour_title, n_bins=24)
 
-# Distribution of new flats per week
-online_since_list = []
-online_hour_list = []
+    if VIZ['pet_data']:
+        # Plot bar chat - pet allowed/not data
+        pet_data_dist, pets_labels = pet_info_prep(dataset['petsAllowed'])
+        pets_labels = ['No', 'Yes', 'Not specified', 'By arrangement']
+        chart_pie = plot_pie_chart(pet_data_dist, pets_labels)
 
-for online_since in data:
+    if VIZ['wordcloud']:
+        # Print world cloud
+        clean_descriptions = clean_description(dataset['description'])
+        # Generate word cloud
+        my_stopwords_list = [
+            'mit', 'zi', 'im', 'voll', 'whg', 'und', 'von', 'der', 'die',
+            'nach', 'ab', 'uhr', 'um', 'zum', 'für', 'whg', 'eg', 'iw'
+        ]
+        additional_stopwords = ['münchen','zimmer', 'wohnung']
+        my_stopwords_list.extend(additional_stopwords) # add some extra stop words
 
-    my_date, my_time = clean_online_since(online_since['onlineSince'])
-    date_obj = conv_date_obj(my_date)
-    weekday = get_weekday(date_obj)
-    online_since_list.append(weekday)
-    online_hour_list.append(get_online_hour(my_time))
-    
-sorted_weekdays = Counter(online_since_list)
-sorted_hours = Counter(online_hour_list)
+        #cloud = plot_wordcloud(clean_descriptions, my_stopwords_list)
 
-#print(sorted_hours)
-
-weekday_objects = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-weekday_data = []
-for weekday_object in weekday_objects:
-    weekday_data.append(sorted_weekdays[weekday_object])
-
-weekday_title = 'Weekly new flat posting distribution'
-weekday_ylabel = 'Averege number of ad posts'
-
-# !PRINT
-#chart_week_dist = plot_bar_chart(weekday_objects, weekday_data,weekday_title, weekday_ylabel)
-
-# Distribution of postings per day
-hour_objects = []
-for i in range(24):
-
-    hour_objects.append(i)
-
-hour_data = []
-
-for hour_object in hour_objects:
-    hour_data.append(sorted_hours[hour_object])
-
-
-hour_title = 'Day posting distribution'
-# !PRINT
-#chart_hour_dist = plot_histogram(online_hour_list,hour_title,24)
-
-descriptions_list = []
-for description_key in data:
-
-    descriptions_list.append(description_key['description']) 
-
-clean_description_text = clean_description(descriptions_list)  
-
-# Generate word cloud
-my_stopwords_list = ['mit','zi', 'im', 'voll', 'whg', 'und', 'von', 'der','die', 'nach', 'ab','uhr','um','zum', 'für','whg', 'eg', 'iw']
-additional_stopwords = ['münchen','zimmer', 'wohnung']
-my_stopwords_list.extend(additional_stopwords) # add some extra stop words
-my_stopwords = set(STOPWORDS)
-my_stopwords.update(my_stopwords_list)
-
-
-# !PRINT
-#wordcloud = WordCloud(width = 3000, height = 2000, random_state=1, background_color='salmon', colormap='Pastel1', collocations=False, stopwords = my_stopwords).generate(clean_description_text)
-#cloud = plot_cloud(wordcloud)
-
-
-pets_data_list = []
-
-for pet_info in data:
-    try:
-        pets_data_list.append(pet_info['petsAllowed'])
-    except TypeError:
-        pass
-    except KeyError:
-        pass
-
-pets_data_list = ['Not Specified' if x=='' else x for x in pets_data_list]
-
-pets_labels = ['Nein', 'Ja','Not Specified', 'Nach Vereinbarung']
-sorted_pets_data = Counter(pets_data_list)
-
-
-pet_data_dist = []
-
-for pet_data in pets_labels:
-
-    pet_data_dist.append(sorted_pets_data[pet_data])
-
-# !PRINT
-#chart_pie = plot_pie_chart(pet_data_dist, pets_labels)
-
-def find_duplicates_list(any_list):
-    
-    return [item for item, count in collections.Counter(any_list).items() if count > 1]
-    
-
-def clean_address_data(address_str):
-    
-    address_str = address_str.lower()
-    if 'anbieter' in address_str:
-        return address_str.split(',')[0]
-    else:
-        return address_str
-
-address_list = []
-address_prices = []
-
-for address in data:
-
-    clean_address = clean_address_data(address['address'])
-    address_prices.append(clean_price(address['price'].split(' ')[0]))
-    address_list.append(clean_address)
-
-
-duplicated_flats = find_duplicates_list(address_list) #! add to cleaning but it also removes duplicates of postal codes
-#pprint.pprint(duplicated_flats)
-#print(len(duplicated_flats))
-
-
-# Save to txt file
-with open('clean_addresses.txt', 'w') as f:
-    for item in address_list:
-        f.write("%s\n" % item)
-        
-# Save to txt file
-with open('clean_prices.txt', 'w') as f:
-    for item in address_prices:
-        f.write("%s\n" % item)

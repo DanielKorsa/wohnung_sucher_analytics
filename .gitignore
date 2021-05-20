@@ -1,7 +1,9 @@
+
 # Additional
 
 test.py
 wohnung_sucher_analytics/
+venv_ws_analytics_py391
 venv_ws_analytics
 .vscode/
 results/
@@ -13,11 +15,16 @@ googlemapsapiresponse.py
 test.json
 ws_db.json
 .vscode
+mygeo.geojson
+#data/
 
 #
 *.csv
 *.pdf
 *.json
+
+# Allow
+!data/immoscout24_ds.csv
 
 
 # Byte-compiled / optimized / DLL files

@@ -4,13 +4,15 @@ from tinydb import TinyDB, Query
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 
-
-
-
 def dynamodb_connect(db_name):
-    '''
-    Get AWS DynamoDB instance
-    '''
+    """[Get AWS DynamoDB instance]
+
+    Args:
+        db_name ([str]): [DB name]
+
+    Returns:
+        [type]: [Table instnce]
+    """
 
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(db_name)
@@ -18,13 +20,20 @@ def dynamodb_connect(db_name):
     return table
 
 def scan_db(table_instance, attribute, search_criteria):
-    '''
-    Scan database and get results based on attribute and search criteria
-    '''
+    """[Scan database and get results based on attribute and search criteria]
+
+    Args:
+        table_instance ([type]): [Instance of created table]
+        attribute ([Str]): [Key Atribute]
+        search_criteria ([str]): [Search value]
+
+    Returns:
+        [array]: [all relevant items]
+    """
     response = table_instance.scan(
         FilterExpression=Key(attribute).eq(search_criteria)
         #attr = 'source', search_criteria = 'immoscout24'
-    )
+        )
 
     return response['Items']
 
